@@ -10,6 +10,8 @@ app.get('/', (req, res) => {s
     res.send('Hello, World!');
 });
 
+app.use(express.json());
+
 //User Endpoints
 
 //Get all users
@@ -38,6 +40,46 @@ app.get('/users/:id',async (req,res) => {
     res.status(500).json({message: 'Error retrieving users'})
   }
 })
+
+//Add User 
+app.post('/users/', async (req,res) => {
+
+  const {email,password,name} = req.body;
+  try {
+    const results = await client.query(
+    ` INSERT INTO users (name, email,password)
+      VALUES ($1,$2,$3)
+    `,[name,email,password])
+    res.status(201).json({message:'New user added'})
+  } catch (error){
+    console.error('Error adding user:',error)
+    res.status(500).json({message:'Error adding user', error: error.message})
+  }
+
+})
+
+//Edit User
+app.put('/users/:id', async (req,res) => {
+  const id = req.params.id;
+  const {email,password,name} = req.body;
+  try {
+    const results = await client.query(
+      `UPDATE users
+        SET 
+         name = COALESCE($1, name), 
+         email = COALESCE($2, email), 
+         password = COALESCE($3, password) 
+       WHERE id = $4`,[name,email,password,id])
+
+      if(results.rowCount === 0){
+        return res.status(404).json({message:'User not found'})
+      }
+      res.status(200).json({message:'User updated successfully'})
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({message:'Error updating user'});
+  }
+});
 
 //Delete User 
 app.delete('/users/:id', async (req,res) => {
@@ -100,8 +142,68 @@ app.get('/products/category/:category', async (req,res) => {
   console.error('Error retrieving products:', error);
   res.status(500).json({message: 'Error retrieving products'});
  }
-
 });
+
+//Add Product
+app.post('/products', async (req,res) => {
+
+  const {name,description,price,stock,category} = req.body;
+  try {
+    const results = await client.query(
+    ` INSERT INTO products (name,description,price,stock,category)
+      VALUES ($1,$2,$3,$4,$5)
+    `,[name,description,price,stock,category])
+    res.status(201).json({message:'New product added'})
+  } catch (error){
+    console.error('Error adding user:',error)
+    res.status(500).json({message:'Error adding product', error: error.message})
+  }
+
+})
+
+//Update a Product 
+app.put('/products/:id', async (req,res) => {
+  const id = req.params.id;
+  const {name,description,price,stock,category} = req.body;
+  try {
+    const results = await client.query(
+      `UPDATE products
+        SET 
+         name = COALESCE($1, name), 
+         description = COALESCE($2, description), 
+         price = COALESCE($3, price),
+         stock = COALESCE($4, stock) ,
+         category = COALESCE($5, category) 
+       WHERE id = $6`,[name,description,price,stock,category,id])
+
+      if(results.rowCount === 0){
+        return res.status(404).json({message:'Product not found'})
+      }
+      res.status(200).json({message:'Product updated successfully'})
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({message:'Error updating product'});
+  }
+});
+
+
+
+//Delete product
+app.delete('/products/:id', async (req,res) => {
+  const id = req.params.id;
+try {
+  const results = await client.query('DELETE FROM products WHERE id = $1', [id]);
+  console.log("Rows affected:", results.rowCount)
+  if(results.rowCount === 0){
+    return res.status(404).json({message:'Product not found'});
+  }
+  res.status(204).json({message:'Product deleted successfully'});
+} catch (error) {
+  console.error('Error deleting product:', error);
+ res.status(500).json({message:'Product not deleted'})
+}
+})
+
 
 
 //Order Endpoints
