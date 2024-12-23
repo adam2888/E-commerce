@@ -1,7 +1,8 @@
 import express from 'express';
 import client from './db.js';
+import bcrypt from 'bcrypt';
 
-
+const saltRounds = 10; // Number of rounds for hashing
 
 const app = express();
 const PORT = 5500; 
@@ -42,34 +43,55 @@ app.get('/users/:id',async (req,res) => {
 })
 
 //Add User 
-app.post('/users/', async (req,res) => {
 
-  const {email,password,name} = req.body;
+
+
+app.post('/register', async (req,res) => {
+
+  const {email,password,name,username} = req.body;
+  if(!username || !password){ // Check username and password are in the request body.
+    return res.status(400).json({message:'Username and password are required'})
+  }
   try {
+
+   const existingUser = await client.query(
+    'SELECT * FROM users WHERE username = $1',[username])
+    if(existingUser.rows.length > 0) {
+      return res.status(409).json({ message: 'User already exists' }); // 409 Conflict
+    }
+    const hashedPassword = await bcrypt.hash(password,saltRounds)
     const results = await client.query(
-    ` INSERT INTO users (name, email,password)
-      VALUES ($1,$2,$3)
-    `,[name,email,password])
-    res.status(201).json({message:'New user added'})
+    ` INSERT INTO users (name,email,password,username)
+      VALUES ($1,$2,$3,$4)
+    `,[name,email,hashedPassword,username])
+    res.status(201).json({
+      message:'New user added',
+      user:results.rows[0]})
   } catch (error){
     console.error('Error adding user:',error)
     res.status(500).json({message:'Error adding user', error: error.message})
   }
-
 })
 
 //Edit User
 app.put('/users/:id', async (req,res) => {
   const id = req.params.id;
-  const {email,password,name} = req.body;
+  const {email,password,name,username} = req.body;
+  let hashedPassword;
+
+  if(password){
+    hashedPassword = await bcrypt.hash(password,saltRounds);
+  }
+  
   try {
     const results = await client.query(
       `UPDATE users
         SET 
          name = COALESCE($1, name), 
          email = COALESCE($2, email), 
-         password = COALESCE($3, password) 
-       WHERE id = $4`,[name,email,password,id])
+         password = COALESCE($3, password),
+         username = COALESCE($4,username)
+       WHERE id = $5`,[name,email,hashedPassword,username,id])
 
       if(results.rowCount === 0){
         return res.status(404).json({message:'User not found'})
@@ -162,25 +184,25 @@ app.post('/products', async (req,res) => {
 })
 
 //Update a Product 
-app.put('/products/:id', async (req,res) => {
-  const id = req.params.id;
-  const {name,description,price,stock,category} = req.body;
-  try {
-    const results = await client.query(
-      `UPDATE products
+app.put('/products/:id', async (req,res) => { //When a user navigates to this path with a put request.
+  const id = req.params.id; // The id in the url will be saved to the id variable.
+  const {name,description,price,stock,category} = req.body; // Through destructing the variables are created from information in the body. The variables names must be the same as keys in the request body.
+  try { // Try statement
+    const results = await client.query( //await used to halt the process until the information is receivied or an error occurs. The following query will be sent to the database. COALESCE will try the first value, if it is null it will try the second value. In this case the first value could be a new value if it is not present (null) the orginial value will used. 
+      `UPDATE products 
         SET 
-         name = COALESCE($1, name), 
+         name = COALESCE($1, name),
          description = COALESCE($2, description), 
          price = COALESCE($3, price),
          stock = COALESCE($4, stock) ,
          category = COALESCE($5, category) 
-       WHERE id = $6`,[name,description,price,stock,category,id])
+       WHERE id = $6`,[name,description,price,stock,category,id]) // Will replace the placeholders. The first value in the array will replace $1, the second $2 and so on.
 
-      if(results.rowCount === 0){
-        return res.status(404).json({message:'Product not found'})
+      if(results.rowCount === 0){ // If the number of rows that match the WHERE (in this case id) is 0 this code will run. Exit on return. 
+        return res.status(404).json({message:'Product not found'}) // 404 status is missing resource. 
       }
-      res.status(200).json({message:'Product updated successfully'})
-  } catch (error) {
+      res.status(200).json({message:'Product updated successfully'}) // If item is found and updated send 200status and success message.
+  } catch (error) { // If an error console error along with send a respose with a 500 status and an error message. 
     console.error('Error updating product:', error);
     res.status(500).json({message:'Error updating product'});
   }
