@@ -8,6 +8,7 @@ const { Client } = pkg;
 
 
 
+
 const client = new Client({
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
@@ -24,7 +25,11 @@ async function connectToDatabase() {
   } catch (err) {
     console.error('Error connecting to the database', err);
   }
-}
+};
+
+
+
+
 
 
 connectToDatabase();
