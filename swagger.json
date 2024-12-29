@@ -1,0 +1,217 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "E commerce store",
+    "version": "1.0.0",
+    "description": "A simple API for demonstration purposes"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5500"
+    }
+  ],
+  "paths": {
+    "/login": {
+      "summary": "User inputs login details.",
+      "description": "User inputs login details.",
+      "post": {
+        "summary": "User inserts username and password",
+        "description": "User inserts username and password",
+        "operationId": "login",
+        "responses": {
+          "default": {
+            "description": "Default error sample response",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "Login": {
+                    "value": "{message:'Authentication successful'}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Login "
+        ]
+      }
+    },
+    "/users": {
+      "summary": "Gets all users' data",
+      "description": "This path is used to get all data from the database related to users.",
+      "get": {
+        "summary": "Get all users",
+        "description": "Get all existing users from the database.",
+        "operationId": "get_all_users",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "all_users": {
+                    "value": "[\n  {\n    \"id\": 3,\n    \"name\": \"Charlie Brown\",\n    \"email\": \"charlie@example.com\",\n    \"created_at\": \"2023-12-10T00:00:00.000Z\",\n    \"password\": \"charliepwd789\",\n    \"username\": \"user3\"\n  },\n  {\n    \"id\": 4,\n    \"name\": \"Diana Prince\",\n    \"email\": \"diana@example.com\",\n    \"created_at\": \"2023-12-15T00:00:00.000Z\",\n    \"password\": \"wonderwoman987\",\n    \"username\": \"user4\"\n  }\n]\n"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Default error sample response",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "error_response": {
+                    "value": "{\"error\": \"Something went wrong\", \"status\": 500}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/users/{id}": {
+      "summary": "Delete a user",
+      "description": "This path is used to delete a user",
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "The ID of the user to operate on",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ],
+      "delete": {
+        "summary": "Delete a user",
+        "description": "Delete an exisiting user",
+        "operationId": "delete_user",
+        "responses": {
+          "default": {
+            "description": "Default error sample response"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "get": {
+        "summary": "Get a specific user",
+        "operationId": "get_user",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "get_user": {
+                    "value": "[{\"id\":2,\"name\":\"John Doe\",\"email\":\"john.doe@example.com\",\"created_at\":\"2023-12-05T00:00:00.000Z\",\"password\":\"NewP@ssw0rd\",\"username\":\"user2\"}]"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Default error sample response"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      },
+      "put": {
+        "summary": "Update user",
+        "description": "Update specific User",
+        "operationId": "update_user",
+        "responses": {
+          "default": {
+            "description": "Default error sample response"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    },
+    "/register": {
+      "summary": "Add a new user",
+      "description": "Register new user ",
+      "post": {
+        "summary": "Add new user",
+        "description": "Add new user to database",
+        "operationId": "new_user",
+        "requestBody": {
+          "description": "A new user object",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/User"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "New user added",
+            "content": {
+              "application/json": {
+                "examples": {
+                  "new_user": {
+                    "value": "{\n    \"message\": \"New user added\"\n}"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Default error sample response"
+          }
+        },
+        "tags": [
+          "Users"
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The user's email address"
+          },
+          "password": {
+            "type": "string",
+            "description": "The user's password"
+          },
+          "name": {
+            "type": "string",
+            "description": "The user's full name"
+          },
+          "username": {
+            "type": "string",
+            "description": "The user's username"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "name",
+          "username"
+        ],
+        "xml": {
+          "name": "User"
+        }
+      }
+    }
+  }
+}

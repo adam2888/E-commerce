@@ -6,33 +6,17 @@ import session from 'express-session';
 import dotenv from 'dotenv'; 
 dotenv.config();
 import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerDocument from './swagger.json' assert { type: 'json' };
 
 const saltRounds = 10; // Number of rounds for hashing
 
 const app = express();
 const PORT = 5500; 
 
-const swaggerOptions = {
-  definition: {
-      openapi: '3.0.0',  // Swagger 3.0 specification
-      info: {
-          title: 'My API',  // Title of your API
-          version: '1.0.0', // Version of your API
-          description: 'A simple API for demonstration purposes',
-      },
-      servers: [
-          {
-              url: 'http://localhost:5500', // URL of your API server
-          },
-      ],
-  },
-  apis: ['./routes/*.js'],  // Path to your route files for JSDoc annotations
-};
 
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+
 
 app.use(express.json());
 
@@ -57,6 +41,10 @@ app.use(passport.session());
  *       200:
  *         description: Success
  */
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+
 
 app.post('/login', (req,res,next) => {
 
